@@ -1,9 +1,37 @@
 import express from 'express'
+import { Router } from 'express'
 import { json, urlencoded } from 'body-parser'
 import morgan from 'morgan'
 import cors from 'cors'
 
 export const app = express()
+
+const router = Router()
+
+router.get('/me', (req, res) => {
+  res.send({ message: 'this is the me sub-route' })
+})
+
+app.use('/api', router)
+
+const routes = [
+  'get /cat',
+  'get /cat/:id',
+  'post /cat',
+  'put /cat/:id',
+  'delete /cat/:id'
+]
+
+router
+  .route('/cat')
+  .get()
+  .post()
+
+router
+  .route('/cat/:id')
+  .get()
+  .put()
+  .delete()
 
 const log = (req, res, next) => {
   console.log('logging')
