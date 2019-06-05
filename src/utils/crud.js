@@ -53,7 +53,18 @@ export const updateOne = model => async (req, res) => {
   res.status(200).json({ data: query })
 }
 
-export const removeOne = model => async (req, res) => {}
+export const removeOne = model => async (req, res) => {
+  const userId = req.user._id
+  const id = req.params.id
+
+  const query = await model
+    .findOneAndRemove({ _id: id, createdBy: userId })
+    .exec()
+
+  if (!query) return res.status(400).end()
+
+  res.status(200).json({ data: query })
+}
 
 export const crudControllers = model => ({
   removeOne: removeOne(model),
