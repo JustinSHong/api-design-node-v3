@@ -25,7 +25,17 @@ export const getMany = model => async (req, res) => {
   }
 }
 
-export const createOne = model => async (req, res) => {}
+export const createOne = model => async (req, res) => {
+  const userId = req.user._id
+  const body = req.body
+
+  try {
+    const query = await model.create({ ...body, createdBy: userId })
+    res.status(201).json({ data: query })
+  } catch (err) {
+    res.status(400).end()
+  }
+}
 
 export const updateOne = model => async (req, res) => {}
 
