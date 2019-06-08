@@ -59,7 +59,29 @@ export const signin = async (req, res) => {
 
 // AUTH MIDDLEWARE
 export const protect = async (req, res, next) => {
-  // protect all mounted routes - look for JWT in auth header in every req
-  // see verifyToken() controller
-  next()
+  const { authorization } = req.headers
+
+  if (!authorization) return res.status(401).end()
+
+  const split = authorization.split(' ')
+  const prefix = split[0]
+
+  if (prefix !== 'Bearer') return res.status(401).end()
+  const token = split[1]
+
+  try {
+    const payload = await verifyToken(token)
+    // token signed with user id on sign up
+    const user = await User.findById(payload.id)
+      .select('-password')
+      .lean()
+      .exec()
+    if (!user) return res.status(401).end()
+    // pass user data on
+    req.user = user
+    next()
+  } catch (err) {
+    console.error(err)
+    return res.status(500).end()
+  }
 }
