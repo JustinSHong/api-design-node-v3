@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken'
 
 // create a new JWT based on user id given a user obj
 export const newToken = user => {
-  return jwt.sign({ id: user.id }, config.secrets.jwt, {
+  return jwt.sign({ id: user._id }, config.secrets.jwt, {
     expiresIn: config.secrets.jwtExp
   })
 }
@@ -28,7 +28,9 @@ export const signup = async (req, res) => {
   try {
     const user = await User.create({ email, password })
     const token = newToken(user)
-    return res.status(201).send({ token })
+    return res
+      .status(201)
+      .send({ message: `you have signed up with ${email}`, token })
   } catch (err) {
     console.error(err)
     return res.status(500).end()
@@ -50,7 +52,9 @@ export const signin = async (req, res) => {
     if (!match) return res.status(401).send({ message: 'invalid password' })
 
     const token = newToken(user)
-    return res.status(201).send({ token })
+    return res
+      .status(201)
+      .send({ message: `you are signed in with ${email}`, token })
   } catch (err) {
     console.error(err)
     return res.status(500).end()
@@ -67,7 +71,7 @@ export const protect = async (req, res, next) => {
   const prefix = split[0]
 
   if (prefix !== 'Bearer') return res.status(401).end()
-  const token = split[1]
+  const token = split[2]
 
   try {
     const payload = await verifyToken(token)
@@ -76,12 +80,14 @@ export const protect = async (req, res, next) => {
       .select('-password')
       .lean()
       .exec()
+
     if (!user) return res.status(401).end()
     // pass user data on
     req.user = user
     next()
   } catch (err) {
-    console.error(err)
-    return res.status(500).end()
+    return res
+      .status(500)
+      .send({ message: 'could not access protected resource' })
   }
 }
