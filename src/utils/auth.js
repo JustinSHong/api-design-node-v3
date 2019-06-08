@@ -20,8 +20,19 @@ export const verifyToken = token =>
 
 // AUTH CONTROLLERS
 export const signup = async (req, res) => {
-  // accept email and pw for a user
-  // return a new JWT
+  const { email, password } = req.body
+
+  if (!email || !password)
+    return res.status(400).send({ message: 'invalid credentials' })
+
+  try {
+    const user = await User.create({ email, password })
+    const token = newToken(user)
+    return res.status(201).send({ token })
+  } catch (err) {
+    console.error(err)
+    return res.status(500).end()
+  }
 }
 
 export const signin = async (req, res) => {
