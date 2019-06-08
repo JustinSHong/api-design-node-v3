@@ -36,8 +36,25 @@ export const signup = async (req, res) => {
 }
 
 export const signin = async (req, res) => {
-  // check validity of email and pw for a user - see user.checkPassword
-  // return a new JWT
+  const { email, password } = req.body
+
+  if (!email || !password)
+    return res.status(400).send({ message: 'invalid credentials' })
+
+  const user = await User.findOne({ email }).exec()
+
+  if (!user) return res.status(401).send({ message: 'invalid email' })
+
+  try {
+    const match = await user.checkPassword(password)
+    if (!match) return res.status(401).send({ message: 'invalid password' })
+
+    const token = newToken(user)
+    return res.status(201).send({ token })
+  } catch (err) {
+    console.error(err)
+    return res.status(500).end()
+  }
 }
 
 // AUTH MIDDLEWARE
